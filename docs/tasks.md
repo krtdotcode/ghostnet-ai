@@ -8,13 +8,13 @@ This sprint is a tightly orchestrated assembly line. Each day has explicit, stri
 
 Goal: Establish repo structure, lock API contracts, and produce minimal prototypes so parallel work can begin.
 
-| Task Name                                    | Assigned Member & Branch                                    | Dependencies                           | Target Deliverable                                                               |
-| -------------------------------------------- | ----------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------- |
-| Project bootstrap and protected branch setup | Vardz - Tech Lead / `main`, `develop`, `feature/infra-core` | None                                   | Repo structure, branch protection, baseline Next.js app, shared coding standards |
-| Bright Data discovery prototype              | Kurt - Scraping Specialist / `feature/brightdata-pipeline`  | Brand definition from product scope    | SERP query prototype returning top suspicious results                            |
-| Claude schema and scoring contract           | Pol - AI Engineer / `feature/claude-orchestration`          | Evidence shape from scraping prototype | Strict JSON schema for threat analysis and report output                         |
-| Dashboard shell and navigation skeleton      | Charles - Frontend UI/UX / `feature/dashboard-ui`           | API contract draft                     | Visual shell with brand panel, live threat list, and evidence drawer             |
-| QA matrix and sprint acceptance rules        | Zie - QA & Strategy / `feature/qa-validation`               | Product scope and target architecture  | Test checklist, release criteria, and pass/fail thresholds                       |
+| Status | Task Name                                    | Assigned Member & Branch                                    | Dependencies                           | Target Deliverable                                                               |
+| ------ | -------------------------------------------- | ----------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------- |
+| [X]    | Project bootstrap and protected branch setup | Vardz - Tech Lead / `main`, `develop`, `feature/infra-core` | None                                   | Repo structure, branch protection, baseline Next.js app, shared coding standards |
+| [ ]    | Bright Data discovery prototype              | Kurt - Scraping Specialist / `feature/brightdata-pipeline`  | Brand definition from product scope    | SERP query prototype returning top suspicious results                            |
+| [ ]    | Claude schema and scoring contract           | Pol - AI Engineer / `feature/claude-orchestration`          | Evidence shape from scraping prototype | Strict JSON schema for threat analysis and report output                         |
+| [ ]    | Dashboard shell and navigation skeleton      | Charles - Frontend UI/UX / `feature/dashboard-ui`           | API contract draft                     | Visual shell with brand panel, live threat list, and evidence drawer             |
+| [ ]    | QA matrix and sprint acceptance rules        | Zie - QA & Strategy / `feature/qa-validation`               | Product scope and target architecture  | Test checklist, release criteria, and pass/fail thresholds                       |
 
 ### Per-Task Instructions and AI Prompts (Day 1)
 
@@ -108,13 +108,13 @@ You are a QA automation assistant. Create a concise acceptance checklist for a 4
 
 Goal: Connect discovery -> capture -> analysis -> UI with concrete artifacts and a live feed prototype.
 
-| Task Name                                   | Assigned Member & Branch                                   | Dependencies                   | Target Deliverable                                            |
-| ------------------------------------------- | ---------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------- |
-| Supabase schema and evidence storage wiring | Vardz - Tech Lead / `feature/infra-core`                   | Day 1 contract lock            | Brands and Threats tables plus evidence buckets and RLS rules |
-| Scraping Browser capture flow               | Kurt - Scraping Specialist / `feature/brightdata-pipeline` | SERP prototype                 | Full-page screenshot capture with safe DOM summaries          |
-| Claude threat analysis implementation       | Pol - AI Engineer / `feature/claude-orchestration`         | Evidence packet from Kurt      | Scoring pipeline that returns validated JSON analysis         |
-| Live threat feed UI integration             | Charles - Frontend UI/UX / `feature/dashboard-ui`          | API contract and mock payloads | Dashboard list bound to live threat data and evidence links   |
-| Test scaffolding and E2E checkpoints        | Zie - QA & Strategy / `feature/qa-validation`              | Day 1 interfaces               | Automated smoke tests for one brand, one threat, one report   |
+| Status | Task Name                                   | Assigned Member & Branch                                   | Dependencies                   | Target Deliverable                                            |
+| ------ | ------------------------------------------- | ---------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------- |
+| [ ]    | Supabase schema and evidence storage wiring | Vardz - Tech Lead / `feature/infra-core`                   | Day 1 contract lock            | Brands and Threats tables plus evidence buckets and RLS rules |
+| [ ]    | Scraping Browser capture flow               | Kurt - Scraping Specialist / `feature/brightdata-pipeline` | SERP prototype                 | Full-page screenshot capture with safe DOM summaries          |
+| [ ]    | Claude threat analysis implementation       | Pol - AI Engineer / `feature/claude-orchestration`         | Evidence packet from Kurt      | Scoring pipeline that returns validated JSON analysis         |
+| [ ]    | Live threat feed UI integration             | Charles - Frontend UI/UX / `feature/dashboard-ui`          | API contract and mock payloads | Dashboard list bound to live threat data and evidence links   |
+| [ ]    | Test scaffolding and E2E checkpoints        | Zie - QA & Strategy / `feature/qa-validation`              | Day 1 interfaces               | Automated smoke tests for one brand, one threat, one report   |
 
 ### Per-Task Instructions and AI Prompts (Day 2)
 
@@ -204,13 +204,13 @@ You are a QA automation assistant. Provide Jest-based test skeletons for: brand 
 
 Goal: Add robustness (timeouts, retries), finalize failure taxonomy, and produce human-reviewable legal drafts.
 
-| Task Name                                       | Assigned Member & Branch                                   | Dependencies                 | Target Deliverable                                                       |
-| ----------------------------------------------- | ---------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------ |
-| Deadline enforcement and retry policy           | Vardz - Tech Lead / `feature/infra-core`                   | Integration paths from Day 2 | Hard timeout controls and bounded retry rules                            |
-| Anti-bot failure handling and fallback capture  | Kurt - Scraping Specialist / `feature/brightdata-pipeline` | Browser capture flow         | Clean failure states for blocked or partially rendered targets           |
-| Cease-and-desist report generator               | Pol - AI Engineer / `feature/claude-orchestration`         | Validated threat records     | Structured legal draft with evidence citations and abuse contact hints   |
-| Evidence viewer and report action panel         | Charles - Frontend UI/UX / `feature/dashboard-ui`          | Threat and report fixtures   | UI for screenshot review, report preview, and manual approval            |
-| Validation suite expansion and release criteria | Zie - QA & Strategy / `feature/qa-validation`              | End-to-end flows from Day 2  | Regression tests covering timeout, evidence integrity, and report gating |
+| Status | Task Name                                       | Assigned Member & Branch                                   | Dependencies                 | Target Deliverable                                                       |
+| ------ | ----------------------------------------------- | ---------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------ |
+| [ ]    | Deadline enforcement and retry policy           | Vardz - Tech Lead / `feature/infra-core`                   | Integration paths from Day 2 | Hard timeout controls and bounded retry rules                            |
+| [ ]    | Anti-bot failure handling and fallback capture  | Kurt - Scraping Specialist / `feature/brightdata-pipeline` | Browser capture flow         | Clean failure states for blocked or partially rendered targets           |
+| [ ]    | Cease-and-desist report generator               | Pol - AI Engineer / `feature/claude-orchestration`         | Validated threat records     | Structured legal draft with evidence citations and abuse contact hints   |
+| [ ]    | Evidence viewer and report action panel         | Charles - Frontend UI/UX / `feature/dashboard-ui`          | Threat and report fixtures   | UI for screenshot review, report preview, and manual approval            |
+| [ ]    | Validation suite expansion and release criteria | Zie - QA & Strategy / `feature/qa-validation`              | End-to-end flows from Day 2  | Regression tests covering timeout, evidence integrity, and report gating |
 
 ### Per-Task Instructions and AI Prompts (Day 3)
 
@@ -295,13 +295,13 @@ You are a QA strategist assistant. Provide Jest test cases and guidance to valid
 
 Goal: Final polish, tuning, and release readiness — ensure the demo is stable and all handoffs are complete.
 
-| Task Name                                     | Assigned Member & Branch                                    | Dependencies                     | Target Deliverable                                                  |
-| --------------------------------------------- | ----------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------- |
-| Final integration polish and release gate     | Vardz - Tech Lead / `main`, `develop`, `feature/infra-core` | All feature branches merged      | Release candidate with clean build and deploy sequence              |
-| Search coverage tuning and edge-case sampling | Kurt - Scraping Specialist / `feature/brightdata-pipeline`  | Production-like fixtures         | Finalized discovery patterns with safe limits and tuned filters     |
-| Prompt optimization and JSON validation sweep | Pol - AI Engineer / `feature/claude-orchestration`          | Realistic evidence samples       | Lower-failure-rate analysis prompt and validation guardrail set     |
-| UI responsiveness and presentation polish     | Charles - Frontend UI/UX / `feature/dashboard-ui`           | Stable live feed and report flow | Demo-ready dashboard with mobile-safe layout and clear states       |
-| Final QA, launch checklist, and handoff notes | Zie - QA & Strategy / `feature/qa-validation`               | Full integrated build            | Sign-off document, known risks log, and demo verification checklist |
+| Status | Task Name                                     | Assigned Member & Branch                                    | Dependencies                     | Target Deliverable                                                  |
+| ------ | --------------------------------------------- | ----------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------- |
+| [ ]    | Final integration polish and release gate     | Vardz - Tech Lead / `main`, `develop`, `feature/infra-core` | All feature branches merged      | Release candidate with clean build and deploy sequence              |
+| [ ]    | Search coverage tuning and edge-case sampling | Kurt - Scraping Specialist / `feature/brightdata-pipeline`  | Production-like fixtures         | Finalized discovery patterns with safe limits and tuned filters     |
+| [ ]    | Prompt optimization and JSON validation sweep | Pol - AI Engineer / `feature/claude-orchestration`          | Realistic evidence samples       | Lower-failure-rate analysis prompt and validation guardrail set     |
+| [ ]    | UI responsiveness and presentation polish     | Charles - Frontend UI/UX / `feature/dashboard-ui`           | Stable live feed and report flow | Demo-ready dashboard with mobile-safe layout and clear states       |
+| [ ]    | Final QA, launch checklist, and handoff notes | Zie - QA & Strategy / `feature/qa-validation`               | Full integrated build            | Sign-off document, known risks log, and demo verification checklist |
 
 ### Per-Task Instructions and AI Prompts (Day 4)
 
