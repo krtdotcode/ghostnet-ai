@@ -2,6 +2,7 @@ const REQUIRED_ENV_VARS = [
   'SUPABASE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
   'BRIGHTDATA_API_KEY',
+  'BRIGHT_DATA_SERP_API_KEY',
   'GEMINI_API_KEY'
 ];
 
@@ -9,8 +10,8 @@ const missingVars = REQUIRED_ENV_VARS.filter((envVar) => !process.env[envVar]);
 const hasBrightDataEndpoint = Boolean(process.env.BRIGHTDATA_SERP_ENDPOINT?.trim());
 const hasBrightDataZone = Boolean(process.env.BRIGHTDATA_ZONE_SERP?.trim());
 
-if (!hasBrightDataEndpoint && !hasBrightDataZone) {
-  missingVars.push('BRIGHTDATA_SERP_ENDPOINT or BRIGHTDATA_ZONE_SERP');
+if (!hasBrightDataZone) {
+  missingVars.push('BRIGHTDATA_ZONE_SERP');
 }
 
 if (missingVars.length > 0) {

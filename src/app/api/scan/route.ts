@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { discoverSerpEvidence } from "@/lib/brightdata/serp-client";
+import { capturePage, type EvidenceBundle } from "@/lib/brightdata/scraping-browser-client";
 import { getGeminiModel } from "@/lib/gemini/model";
+import { join } from "path";
+import { tmpdir } from "os";
 
 type SearchResult = {
   url: string;
@@ -8,6 +11,7 @@ type SearchResult = {
   snippet: string;
   source: "Google" | "Bing" | "Bright Data SERP";
   query: string;
+  evidence?: EvidenceBundle;
 };
 
 export async function POST(req: NextRequest) {
@@ -35,7 +39,9 @@ export async function POST(req: NextRequest) {
       return true;
     });
 
-    const threatReport = await analyzeWithGemini(brandName, deduplicated);
+    const evidenceResults = await captureSuspiciousEvidence(brandName, deduplicated);
+
+    const threatReport = await analyzeWithGemini(brandName, evidenceResults);
 
     return NextResponse.json(threatReport);
   } catch (err) {
@@ -50,13 +56,14 @@ async function searchGoogle(brandName: string): Promise<SearchResult[]> {
   const results = await discoverSerpEvidence({
     brandName,
     limit: 10,
+    endpoint: process.env.BRIGHTDATA_ZONE_SERP,
   });
 
   return results.map((item) => ({
     url: item.url,
     title: item.title,
     snippet: item.snippet,
-    source: "Bright Data SERP" as const,
+    source: "Google" as const,
     query: item.query,
   }));
 }
@@ -65,15 +72,77 @@ async function searchBing(brandName: string): Promise<SearchResult[]> {
   const results = await discoverSerpEvidence({
     brandName,
     limit: 8,
+    endpoint: process.env.BRIGHTDATA_ZONE_SERP,
   });
 
   return results.map((item) => ({
     url: item.url,
     title: item.title,
     snippet: item.snippet,
-    source: "Bright Data SERP" as const,
+    source: "Bing" as const,
     query: item.query,
   }));
+}
+
+async function captureSuspiciousEvidence(brandName: string, results: SearchResult[]) {
+  const candidates = selectCaptureCandidates(brandName, results).slice(0, 3);
+
+  if (candidates.length === 0) {
+    return results;
+  }
+
+  const captured = await Promise.allSettled(
+    candidates.map(async (candidate, index) => {
+      const outputDir = join(tmpdir(), "ghostnet-ai", "scan", sanitizeSegment(brandName), `${Date.now()}-${index}`);
+      const evidence = await capturePage({
+        url: candidate.url,
+        outputDir,
+        timeoutMs: 15_000,
+        maxVisibleItems: 12,
+      });
+
+      return {
+        url: candidate.url,
+        evidence,
+      };
+    }),
+  );
+
+  const evidenceByUrl = new Map<string, EvidenceBundle>();
+  for (const item of captured) {
+    if (item.status === "fulfilled") {
+      evidenceByUrl.set(item.value.url, item.value.evidence);
+    }
+  }
+
+  return results.map((result) => ({
+    ...result,
+    evidence: evidenceByUrl.get(result.url),
+  }));
+}
+
+function selectCaptureCandidates(brandName: string, results: SearchResult[]) {
+  const loweredBrand = brandName.toLowerCase();
+  const suspiciousKeywords = ["login", "signin", "sign in", "verify", "account", "secure", "wallet", "support", "password", "shop", "store"];
+
+  return [...results]
+    .map((result) => {
+      const haystack = `${result.url} ${result.title} ${result.snippet}`.toLowerCase();
+      let score = 0;
+
+      if (!haystack.includes(loweredBrand)) score += 20;
+      if (suspiciousKeywords.some((keyword) => haystack.includes(keyword))) score += 30;
+      if (haystack.includes("-") || haystack.includes("_")) score += 10;
+      if (result.snippet.trim().length > 0) score += 5;
+
+      return { result, score };
+    })
+    .sort((left, right) => right.score - left.score)
+    .map((entry) => entry.result);
+}
+
+function sanitizeSegment(value: string) {
+  return value.trim().toLowerCase().replace(/[^a-z0-9-_]+/g, "-").replace(/^-+|-+$/g, "") || "brand";
 }
 
 async function analyzeWithGemini(brandName: string, results: SearchResult[]) {
@@ -87,6 +156,21 @@ brand "${brandName}".
 
 Here are the scraped results:
 ${JSON.stringify(results, null, 2)}
+
+Here are the captured page evidence bundles for the highest-signal targets:
+${JSON.stringify(
+  results
+    .filter((result) => result.evidence)
+    .map((result) => ({
+      url: result.url,
+      title: result.title,
+      source: result.source,
+      query: result.query,
+      evidence: result.evidence,
+    })),
+  null,
+  2,
+)}
 
 Analyze every result and return ONLY a valid JSON object with this exact schema.
 No explanation. No markdown. No code fences. JSON only.

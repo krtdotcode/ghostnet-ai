@@ -24,6 +24,12 @@ export interface DiscoverSerpOptions {
   fetchImpl?: typeof fetch;
   deadlineAt?: string;
   signal?: AbortSignal;
+  debugCollector?: (entry: {
+    query: string;
+    keys: string[];
+    organicCount: number;
+    sample?: Record<string, unknown>;
+  }) => void;
 }
 
 interface RawSerpItem {
@@ -36,29 +42,16 @@ interface RawSerpItem {
 const DEFAULT_SIGNAL_TERMS = ["login", "support", "verify", "wallet", "security"];
 const DEFAULT_LIMIT = 8;
 const DEFAULT_TIMEOUT_MS = 10_000;
-const DEFAULT_SERP_ENDPOINT = "https://api.brightdata.com/datasets/v3/trigger";
+const DEFAULT_SERP_REQUEST_ENDPOINT = "https://api.brightdata.com/request";
 
-function buildBrightDataSerpEndpoint(zoneId: string): string {
-  const endpoint = new URL(DEFAULT_SERP_ENDPOINT);
-  endpoint.searchParams.set("dataset_id", zoneId.trim());
-  return endpoint.toString();
-}
+export function resolveBrightDataSerpZone(explicitZone?: string): string {
+  const configuredZone = explicitZone?.trim() || process.env.BRIGHTDATA_ZONE_SERP?.trim();
 
-export function resolveBrightDataSerpEndpoint(explicitEndpoint?: string): string {
-  const configuredEndpoint = explicitEndpoint?.trim() || process.env.BRIGHTDATA_SERP_ENDPOINT?.trim();
-
-  if (configuredEndpoint) {
-    return configuredEndpoint;
+  if (!configuredZone) {
+    throw new Error("Missing Bright Data SERP zone. Set BRIGHTDATA_ZONE_SERP.");
   }
 
-  const zoneId = process.env.BRIGHTDATA_ZONE_SERP?.trim();
-  if (zoneId) {
-    return buildBrightDataSerpEndpoint(zoneId);
-  }
-
-  throw new Error(
-    "Missing Bright Data SERP configuration. Set BRIGHTDATA_SERP_ENDPOINT or BRIGHTDATA_ZONE_SERP.",
-  );
+  return configuredZone;
 }
 
 export function resolveBrightDataApiKey(explicitApiKey?: string): string {
@@ -142,6 +135,23 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function extractItemsFromResponse(payload: unknown): RawSerpItem[] {
+  if (isRecord(payload)) {
+    const body = payload.body;
+
+    if (typeof body === "string" && body.trim().length > 0) {
+      try {
+        const parsedBody = JSON.parse(body) as unknown;
+        return extractItemsFromResponse(parsedBody);
+      } catch {
+        // Fall through and try the wrapper object fields below.
+      }
+    }
+
+    if (isRecord(body) || Array.isArray(body)) {
+      return extractItemsFromResponse(body);
+    }
+  }
+
   const candidates: unknown[] = [];
 
   const pushIfArray = (value: unknown) => {
@@ -159,6 +169,13 @@ function extractItemsFromResponse(payload: unknown): RawSerpItem[] {
     pushIfArray(payload.organic);
     pushIfArray(payload.items);
     pushIfArray(payload.data);
+    pushIfArray(payload.news);
+    pushIfArray(payload.videos);
+    pushIfArray(payload.images);
+    pushIfArray(payload.shopping);
+    pushIfArray(payload.related);
+    pushIfArray(payload.perspectives);
+    pushIfArray(payload.latest_posts);
 
     if (Array.isArray(payload.tasks)) {
       for (const task of payload.tasks) {
@@ -182,8 +199,8 @@ function extractItemsFromResponse(payload: unknown): RawSerpItem[] {
   return candidates
     .filter(isRecord)
     .map((item) => {
-      const title = readString(item, ["title", "name", "heading"]);
-      const url = readString(item, ["url", "link", "displayed_link"]);
+      const title = readString(item, ["title", "name", "heading", "question"]);
+      const url = readString(item, ["url", "link", "href", "display_link"]);
       const snippet = readString(item, ["snippet", "description", "text"]) ?? "";
       const rank = readNumber(item, ["rank", "position", "pos"]);
 
@@ -236,29 +253,33 @@ async function fetchWithTimeout(
 async function querySerp(
   query: string,
   apiKey: string,
-  endpoint: string,
+  zone: string,
   timeoutMs: number,
   fetchImpl: typeof fetch,
   signal?: AbortSignal,
+  debugCollector?: DiscoverSerpOptions["debugCollector"],
 ): Promise<RawSerpItem[]> {
-  const requestBody = {
-    query,
-    limit: DEFAULT_LIMIT,
-  };
+  const targetUrl = query.startsWith("http://") || query.startsWith("https://")
+    ? query
+    : `https://www.google.com/search?q=${encodeURIComponent(query)}`;
 
   let response: Response;
 
   try {
     response = await fetchWithTimeout(
       fetchImpl,
-      endpoint,
+      DEFAULT_SERP_REQUEST_ENDPOINT,
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          zone,
+          url: targetUrl,
+          format: "json",
+        }),
       },
       timeoutMs,
       signal,
@@ -285,23 +306,33 @@ async function querySerp(
   }
 
   const payload = (await response.json()) as unknown;
+  if (debugCollector && isRecord(payload)) {
+    const organic = Array.isArray(payload.organic) ? payload.organic : [];
+    debugCollector({
+      query,
+      keys: Object.keys(payload),
+      organicCount: organic.length,
+      sample: organic.length > 0 && isRecord(organic[0]) ? organic[0] : undefined,
+    });
+  }
   return extractItemsFromResponse(payload);
 }
 
 async function querySerpWithRetry(
   query: string,
   apiKey: string,
-  endpoint: string,
+  zone: string,
   timeoutMs: number,
   fetchImpl: typeof fetch,
   deadlineAt?: string,
   signal?: AbortSignal,
+  debugCollector?: DiscoverSerpOptions["debugCollector"],
 ): Promise<RawSerpItem[]> {
   let lastError: Error | undefined;
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
-      return await querySerp(query, apiKey, endpoint, timeoutMs, fetchImpl, signal);
+      return await querySerp(query, apiKey, zone, timeoutMs, fetchImpl, signal, debugCollector);
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
 
@@ -327,6 +358,7 @@ export async function discoverSerpEvidence(
     fetchImpl = fetch,
     deadlineAt,
     signal,
+    debugCollector,
   } = options;
 
   if (!brandName.trim()) {
@@ -334,7 +366,7 @@ export async function discoverSerpEvidence(
   }
 
   const resolvedApiKey = resolveBrightDataApiKey(apiKey);
-  const resolvedEndpoint = resolveBrightDataSerpEndpoint(endpoint);
+  const resolvedZone = resolveBrightDataSerpZone(endpoint);
 
   const queries = buildDiscoveryQueries(brandName, permutations);
   const discoveredAt = new Date().toISOString();
@@ -355,11 +387,12 @@ export async function discoverSerpEvidence(
       const records = await querySerpWithRetry(
         query,
         resolvedApiKey,
-        resolvedEndpoint,
+        resolvedZone,
         timeoutMs,
         fetchImpl,
         deadlineAt,
         signal,
+        debugCollector,
       );
 
       records.forEach((record, index) => {
