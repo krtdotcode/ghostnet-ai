@@ -9,6 +9,7 @@
  */
 
 import { buildAnalysisPrompt, SYSTEM_PROMPT } from "./prompt-template";
+import { getGeminiModel } from "./model";
 import { validateGeminiOutput } from "./validator";
 import type { EvidencePacket } from "./prompt-template";
 import type { GeminiAnalysisOutput } from "../../types/gemini-analysis";
@@ -107,7 +108,8 @@ export async function runGeminiAnalysis(
 
   let rawText: string;
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+    const model = getGeminiModel();
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`;
     const resp = await fetch(url, {
       method: "POST",
       headers: {

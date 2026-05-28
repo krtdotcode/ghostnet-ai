@@ -6,7 +6,8 @@ import { motion } from "framer-motion";
 
 export default function DashboardPage() {
   const [brand, setBrand] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
+  const [status, setStatus] = useState<"IDLE" | "SCANNING" | "ERROR">("IDLE");
+  const [error, setError] = useState("");
   const router = useRouter();
 
   // For the scanline effect
@@ -20,15 +21,37 @@ export default function DashboardPage() {
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleScan = async () => {
     if (!brand.trim()) return;
 
-    setIsSearching(true);
+    setStatus("SCANNING");
+    setError("");
 
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brandName: brand.trim() }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.details ?? data.error ?? "Scan failed");
+      }
+
+      sessionStorage.setItem("threatReport", JSON.stringify(data));
       router.push("/dashboard/threats");
-    }, 2000);
+    } catch (err) {
+      let message = String(err);
+
+      if (err instanceof Error && err.message) {
+        message = err.message;
+      }
+
+      setStatus("ERROR");
+      setError(message);
+    }
   };
 
   return (
@@ -57,7 +80,11 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="font-mono text-[10px] sm:text-xs text-muted-foreground bg-secondary/50 px-2 py-1">
-            {isSearching ? "STATUS: SCANNING..." : "STATUS: IDLE"}
+            {status === "SCANNING"
+              ? "STATUS: SCANNING"
+              : status === "ERROR"
+                ? "STATUS: ERROR"
+                : "STATUS: IDLE"}
           </div>
         </div>
 
@@ -69,7 +96,13 @@ export default function DashboardPage() {
           scan live sources and generate an automated triage report.
         </p>
 
-        <form onSubmit={handleSearch} className="flex flex-col gap-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleScan();
+          }}
+          className="flex flex-col gap-6"
+        >
           <div className="flex flex-col gap-3">
             <label htmlFor="brand-input" className="font-mono text-xs uppercase text-muted-foreground">
               {">"} target_brand_name
@@ -80,26 +113,28 @@ export default function DashboardPage() {
               value={brand}
               onChange={(e) => setBrand(e.target.value)}
               placeholder="e.g. Acme Corp"
-              disabled={isSearching}
+              disabled={status === "SCANNING"}
               className="w-full border border-border bg-secondary/20 px-4 py-4 font-mono text-lg text-foreground placeholder:text-muted-foreground/50 transition-colors focus-visible:border-foreground focus-visible:bg-secondary/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-foreground disabled:opacity-50"
               autoFocus
               autoComplete="off"
             />
           </div>
 
+          {error && <p className="text-sm text-red-500">{error}</p>}
+
           <button
             type="submit"
-            disabled={isSearching || !brand.trim()}
+            disabled={status === "SCANNING" || !brand.trim()}
             className="group mt-4 inline-flex items-center justify-center gap-2 border border-foreground bg-foreground px-8 py-4 font-mono text-sm uppercase tracking-wide text-background transition-all duration-200 hover:bg-transparent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground disabled:pointer-events-none disabled:opacity-50"
           >
-            {isSearching ? (
+            {status === "SCANNING" ? (
               <>
                 <span className="animate-blink">{"█"}</span>
-                Processing...
+                SCANNING...
               </>
             ) : (
               <>
-                Execute Scan
+                EXECUTE SCAN
                 <span className="transition-transform duration-200 group-hover:translate-x-1">
                   {"->"}
                 </span>
