@@ -8,27 +8,26 @@
  * AnalysisResult and callers decide how to surface them.
  */
 
-// Replaced Anthropic SDK with native fetch to call Google Gemini 2.0 Flash
 import { buildAnalysisPrompt, SYSTEM_PROMPT } from "./prompt-template";
-import { validateClaudeOutput } from "./validator";
+import { validateGeminiOutput } from "./validator";
 import type { EvidencePacket } from "./prompt-template";
-import type { ClaudeAnalysisOutput } from "../../types/claude-analysis";
+import type { GeminiAnalysisOutput } from "../../types/gemini-analysis";
 
 // ─── Result Envelope ─────────────────────────────────────────────────────────
 
 /** Terminal states for a single analysis run. */
 export type AnalysisState = "success" | "needs_review";
 
-/** The envelope returned by runClaudeAnalysis — never throws. */
+/** The envelope returned by runGeminiAnalysis — never throws. */
 export interface AnalysisResult {
   /** Whether the analysis succeeded and passed schema validation. */
   analysisState: AnalysisState;
   /** Parsed and validated model output (present only when state is "success"). */
-  analysis?: ClaudeAnalysisOutput;
+  analysis?: GeminiAnalysisOutput;
   /** Validation errors when state is "needs_review" due to schema mismatch. */
   validationErrors?: string[];
   /**
-   * Raw text from Claude (present when parsing/validation failed so reviewers
+  * Raw text from Gemini (present when parsing/validation failed so reviewers
    * can inspect what the model actually returned).
   */
   rawModelOutput?: string;
@@ -41,7 +40,7 @@ export interface AnalysisResult {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
- * Reads ANTHROPIC_TIMEOUT_MS from env, falls back to 15 000 ms.
+ * Uses a hardcoded 15 000 ms timeout.
  * Must be called inside a request handler (Next.js edge runtime guard).
  */
 function getTimeoutMs(): number {
@@ -70,7 +69,7 @@ function extractJson(raw: string): string {
  * @param evidence - The normalised evidence bundle from the scraping pipeline.
  * @returns AnalysisResult — always resolves, never rejects.
  */
-export async function runClaudeAnalysis(
+export async function runGeminiAnalysis(
   evidence: EvidencePacket
 ): Promise<AnalysisResult> {
   const startedAt = Date.now();
@@ -170,7 +169,7 @@ export async function runClaudeAnalysis(
   }
 
   // ── Validate against schema ───────────────────────────────────────────────
-  const validation = validateClaudeOutput(parsed);
+  const validation = validateGeminiOutput(parsed);
   if (!validation.valid) {
     return {
       analysisState: "needs_review",
@@ -184,7 +183,7 @@ export async function runClaudeAnalysis(
   // ── Success ───────────────────────────────────────────────────────────────
   return {
     analysisState: "success",
-    analysis: parsed as ClaudeAnalysisOutput,
+    analysis: parsed as GeminiAnalysisOutput,
     durationMs: Date.now() - startedAt,
   };
 }

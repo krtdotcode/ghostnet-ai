@@ -1,5 +1,5 @@
 import { capturePage } from '@/lib/brightdata/scraping-browser-client';
-import { runClaudeAnalysis } from '@/lib/claude/analysis-service';
+import { runGeminiAnalysis } from '@/lib/gemini/analysis-service';
 
 jest.mock('playwright', () => {
   const html = `
@@ -68,7 +68,7 @@ describe('Scan Lifecycle (Smoke Test)', () => {
       expect(capture.visibleText.join(' ')).toContain('GhostNet AI Login');
       expect(capture.formSelectors.join(' ')).toContain('<form id="login-form">');
 
-      const analysis = await runClaudeAnalysis({
+      const analysis = await runGeminiAnalysis({
         collectionId: 'scan-lifecycle-smoke',
         collectedAt: capture.capturedAt,
         items: [

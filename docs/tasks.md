@@ -12,7 +12,7 @@ Goal: Establish repo structure, lock API contracts, and produce minimal prototyp
 | ------ | -------------------------------------------- | ----------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------- |
 | [X]    | Project bootstrap and protected branch setup | Vardz - Tech Lead / `main`, `develop`, `feature/infra-core` | None                                   | Repo structure, branch protection, baseline Next.js app, shared coding standards |
 | [X]    | Bright Data discovery prototype              | Kurt - Scraping Specialist / `feature/brightdata-pipeline`  | Brand definition from product scope    | SERP query prototype returning top suspicious results                            |
-| [x]    | Gemini schema and scoring contract           | Zie - AI Engineer / `feature/claude-orchestration`          | Evidence shape from scraping prototype | Strict JSON schema for threat analysis and report output                         |
+| [x]    | Gemini schema and scoring contract           | Zie - AI Engineer / `feature/gemini-orchestration`          | Evidence shape from scraping prototype | Strict JSON schema for threat analysis and report output                         |
 | [X]    | Dashboard shell and navigation skeleton      | Charles - Frontend UI/UX / `feature/dashboard-ui`           | API contract draft                     | Visual shell with brand panel, live threat list, and evidence drawer             |
 | [X]    | QA matrix and sprint acceptance rules        | Pol - QA & Strategy / `feature/qa-validation`               | Product scope and target architecture  | Test checklist, release criteria, and pass/fail thresholds                       |
 
@@ -38,7 +38,7 @@ Goal: Connect discovery -> capture -> analysis -> UI with concrete artifacts and
 | ------ | ------------------------------------------- | ---------------------------------------------------------- | ------------------------------ | ------------------------------------------------------------- |
 | [X]    | Supabase schema and evidence storage wiring | Vardz - Tech Lead / `feature/infra-core`                   | Day 1 contract lock            | Brands and Threats tables plus evidence buckets and RLS rules |
 | [X]    | Scraping Browser capture flow               | Kurt - Scraping Specialist / `feature/brightdata-pipeline` | SERP prototype                 | Full-page screenshot capture with safe DOM summaries          |
-| [X]    | Gemini threat analysis implementation       | Zie - AI Engineer / `feature/claude-orchestration`         | Evidence packet from Kurt      | Scoring pipeline that returns validated JSON analysis         |
+| [X]    | Gemini threat analysis implementation       | Zie - AI Engineer / `feature/gemini-orchestration`         | Evidence packet from Kurt      | Scoring pipeline that returns validated JSON analysis         |
 | [X]    | Live threat feed UI integration             | Charles - Frontend UI/UX / `feature/dashboard-ui`          | API contract and mock payloads | Dashboard list bound to live threat data and evidence links   |
 | [X]    | Test scaffolding and E2E checkpoints        | Pol - QA & Strategy / `feature/qa-validation`              | Day 1 interfaces               | Automated smoke tests for one brand, one threat, one report   |
 
@@ -79,7 +79,7 @@ You are a browser automation assistant. Provide TypeScript code using Playwright
 
 #### Task: Gemini threat analysis implementation
 
-- Assigned: Zie (AI Engineer) — `feature/claude-orchestration`
+- Assigned: Zie (AI Engineer) — `feature/gemini-orchestration`
 - Strict instructions (junior-level):
   1.  Implement a service that accepts the normalized evidence bundle and calls Gemini (Google AI) with the locked prompt template.
   2.  Ensure the request times out at 15s (hardcoded) and parse only JSON responses.
@@ -134,7 +134,7 @@ Goal: Finish the core backend and legal drafting path so scans are reliable and 
 | ------ | ----------------------------------------------- | ---------------------------------------------------------- | ---------------------------- | ------------------------------------------------------------------------ |
 | [ ]    | Deadline enforcement and retry policy           | Vardz - Tech Lead / `feature/infra-core`                   | Integration paths from Day 2 | Hard timeout controls and bounded retry rules                            |
 | [ ]    | Anti-bot failure handling and fallback capture  | Kurt - Scraping Specialist / `feature/brightdata-pipeline` | Browser capture flow         | Clean failure states for blocked or partially rendered targets           |
-| [ ]    | Cease-and-desist report generator               | Zie - AI Engineer / `feature/claude-orchestration`         | Validated threat records     | Structured legal draft with evidence citations and abuse contact hints   |
+| [ ]    | Cease-and-desist report generator               | Zie - AI Engineer / `feature/gemini-orchestration`         | Validated threat records     | Structured legal draft with evidence citations and abuse contact hints   |
 | [ ]    | Evidence viewer and report action panel         | Charles - Frontend UI/UX / `feature/dashboard-ui`          | Threat and report fixtures   | UI for screenshot review, report preview, and manual approval            |
 | [ ]    | Validation suite expansion and release criteria | Pol - QA & Strategy / `feature/qa-validation`              | End-to-end flows from Day 2  | Regression tests covering timeout, evidence integrity, and report gating |
 
@@ -172,7 +172,7 @@ Step-by-step: define the failure categories `fetch_failed`, `render_failed`, `bl
 
 #### Task: Cease-and-desist report generator
 
-- Assigned: Zie (AI Engineer) — `feature/claude-orchestration`
+- Assigned: Zie (AI Engineer) — `feature/gemini-orchestration`
 - Strict instructions (junior-level):
   1.  Build a `legalReport` JSON generator that accepts a validated `threatId` and uses only trusted evidence references.
   2.  Include the report summary, evidence citations, registrar hints, and abuse contact hints in a schema-valid JSON response.
@@ -228,7 +228,7 @@ Goal: Deliver the complete GhostNet AI MVP. By the end of Day 4, a user should e
 | ------ | --------------------------------------------- | ---------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------- |
 | [ ]    | Final integration polish and release gate     | Vardz - Tech Lead / `feature/infra-core`                   | All feature branches merged      | Release candidate with clean build and deploy sequence              |
 | [ ]    | Search coverage tuning and edge-case sampling | Kurt - Scraping Specialist / `feature/brightdata-pipeline` | Production-like fixtures         | Finalized discovery patterns with safe limits and tuned filters     |
-| [ ]    | Prompt optimization and JSON validation sweep | Zie - AI Engineer / `feature/claude-orchestration`         | Realistic evidence samples       | Lower-failure-rate analysis prompt and validation guardrail set     |
+| [ ]    | Prompt optimization and JSON validation sweep | Zie - AI Engineer / `feature/gemini-orchestration`         | Realistic evidence samples       | Lower-failure-rate analysis prompt and validation guardrail set     |
 | [ ]    | UI responsiveness and presentation polish     | Charles - Frontend UI/UX / `feature/dashboard-ui`          | Stable live feed and report flow | Demo-ready dashboard with mobile-safe layout and clear states       |
 | [ ]    | Final QA, launch checklist, and handoff notes | Pol - QA & Strategy / `feature/qa-validation`              | Full integrated build            | Sign-off document, known risks log, and demo verification checklist |
 
@@ -266,7 +266,7 @@ Step-by-step: run the discovery prototype against a curated set of edge-case bra
 
 #### Task: Prompt optimization and JSON validation sweep
 
-- Assigned: Zie (AI Engineer) — `feature/claude-orchestration`
+- Assigned: Zie (AI Engineer) — `feature/gemini-orchestration`
 - Strict instructions (junior-level):
   1.  Re-run the Gemini prompt against the final evidence samples and make sure the JSON is stable.
   2.  Tighten the report prompt so it always returns the report schema needed for the readable template and PDF export.

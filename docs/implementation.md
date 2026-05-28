@@ -8,7 +8,7 @@ The sprint is organized around a strict assembly line. `main` is the protected p
 | -------------------------- | ----------------------------------------------------------- | --------------------------------------- |
 | Vardz - Tech Lead          | Platform orchestration, schema design, CI, release control  | `main`, `develop`, `feature/infra-core` |
 | Kurt - Scraping Specialist | Bright Data discovery, browser automation, evidence capture | `feature/brightdata-pipeline`           |
-| Pol - AI Engineer          | Gemini prompting, validation, scoring, report generation    | `feature/claude-orchestration`          |
+| Pol - AI Engineer          | Gemini prompting, validation, scoring, report generation    | `feature/gemini-orchestration`          |
 | Charles - Frontend UI/UX   | Dashboard composition, live threat feed, evidence views     | `feature/dashboard-ui`                  |
 | Zie - QA & Strategy        | Test matrix, validation criteria, release readiness         | `feature/qa-validation`                 |
 
@@ -235,7 +235,7 @@ Recommended fallback status values:
 Use this checklist immediately after reading the docs so the team can start building in parallel without blocking each other.
 
 1. Create the protected branch structure and lock `main` plus `develop`.
-2. Initialize the Next.js TypeScript project and install Supabase and Bright Data client dependencies. No Anthropic SDK is required for Gemini — native fetch is used.
+2. Initialize the Next.js TypeScript project and install Supabase and Bright Data client dependencies. No Gemini SDK is required for Gemini — native fetch is used.
 3. Define the Brand and Threat database tables plus storage buckets for evidence and reports.
 4. Implement request validation schemas for all three API endpoints.
 5. Build the Bright Data SERP wrapper and one browser evidence capture proof of concept.

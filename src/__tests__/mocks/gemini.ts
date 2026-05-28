@@ -1,6 +1,6 @@
 // Sample Mock for Gemini (Google AI) Analysis Service
 
-export const mockClaudeService = {
+export const mockGeminiService = {
   // Simulate a successful validation response
   analyzeThreat: jest.fn().mockResolvedValue({
     isThreat: true,
@@ -21,8 +21,8 @@ export const mockClaudeService = {
   )
 };
 
-export const resetClaudeMocks = () => {
-  mockClaudeService.analyzeThreat.mockClear();
-  mockClaudeService.analyzeThreatFailure.mockClear();
-  mockClaudeService.analyzeThreatOverloaded.mockClear();
+export const resetGeminiMocks = () => {
+  mockGeminiService.analyzeThreat.mockClear();
+  mockGeminiService.analyzeThreatFailure.mockClear();
+  mockGeminiService.analyzeThreatOverloaded.mockClear();
 };

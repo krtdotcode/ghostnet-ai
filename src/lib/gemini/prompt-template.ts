@@ -3,7 +3,7 @@
  * @description Locked system prompt and prompt-builder for Gemini (Google AI) threat analysis.
  *
  * The SYSTEM_PROMPT is version-pinned. Any change that alters response shape
- * MUST be accompanied by a schemaVersion bump in ClaudeAnalysisOutput and
+ * MUST be accompanied by a schemaVersion bump in GeminiAnalysisOutput and
  * updates to the JSON schema + sample payloads.
  */
 
