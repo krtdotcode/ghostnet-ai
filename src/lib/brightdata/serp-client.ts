@@ -38,6 +38,44 @@ const DEFAULT_LIMIT = 8;
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_SERP_ENDPOINT = "https://api.brightdata.com/datasets/v3/trigger";
 
+function buildBrightDataSerpEndpoint(zoneId: string): string {
+  const endpoint = new URL(DEFAULT_SERP_ENDPOINT);
+  endpoint.searchParams.set("dataset_id", zoneId.trim());
+  return endpoint.toString();
+}
+
+export function resolveBrightDataSerpEndpoint(explicitEndpoint?: string): string {
+  const configuredEndpoint = explicitEndpoint?.trim() || process.env.BRIGHTDATA_SERP_ENDPOINT?.trim();
+
+  if (configuredEndpoint) {
+    return configuredEndpoint;
+  }
+
+  const zoneId = process.env.BRIGHTDATA_ZONE_SERP?.trim();
+  if (zoneId) {
+    return buildBrightDataSerpEndpoint(zoneId);
+  }
+
+  throw new Error(
+    "Missing Bright Data SERP configuration. Set BRIGHTDATA_SERP_ENDPOINT or BRIGHTDATA_ZONE_SERP.",
+  );
+}
+
+export function resolveBrightDataApiKey(explicitApiKey?: string): string {
+  const configuredApiKey =
+    explicitApiKey?.trim() ||
+    process.env.BRIGHTDATA_API_KEY?.trim() ||
+    process.env.BRIGHT_DATA_SERP_API_KEY?.trim();
+
+  if (!configuredApiKey) {
+    throw new Error(
+      "Missing Bright Data API key. Set BRIGHTDATA_API_KEY or BRIGHT_DATA_SERP_API_KEY.",
+    );
+  }
+
+  return configuredApiKey;
+}
+
 function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
 }
@@ -284,9 +322,8 @@ export async function discoverSerpEvidence(
     permutations = [],
     limit = DEFAULT_LIMIT,
     timeoutMs = DEFAULT_TIMEOUT_MS,
-    endpoint = process.env.BRIGHTDATA_SERP_ENDPOINT ?? DEFAULT_SERP_ENDPOINT,
-    apiKey =
-      process.env.BRIGHTDATA_API_KEY ?? process.env.BRIGHT_DATA_SERP_API_KEY ?? "",
+    endpoint,
+    apiKey,
     fetchImpl = fetch,
     deadlineAt,
     signal,
@@ -296,11 +333,8 @@ export async function discoverSerpEvidence(
     throw new Error("brandName is required for SERP discovery");
   }
 
-  if (!apiKey) {
-    throw new Error(
-      "Missing Bright Data API key. Set BRIGHTDATA_API_KEY or BRIGHT_DATA_SERP_API_KEY.",
-    );
-  }
+  const resolvedApiKey = resolveBrightDataApiKey(apiKey);
+  const resolvedEndpoint = resolveBrightDataSerpEndpoint(endpoint);
 
   const queries = buildDiscoveryQueries(brandName, permutations);
   const discoveredAt = new Date().toISOString();
@@ -320,8 +354,8 @@ export async function discoverSerpEvidence(
     try {
       const records = await querySerpWithRetry(
         query,
-        apiKey,
-        endpoint,
+        resolvedApiKey,
+        resolvedEndpoint,
         timeoutMs,
         fetchImpl,
         deadlineAt,

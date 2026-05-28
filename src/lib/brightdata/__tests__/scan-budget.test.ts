@@ -19,12 +19,27 @@ jest.mock(
   { virtual: true },
 );
 
-import { discoverSerpEvidence } from "@/lib/brightdata/serp-client";
+import {
+  discoverSerpEvidence,
+  resolveBrightDataApiKey,
+  resolveBrightDataSerpEndpoint,
+} from "@/lib/brightdata/serp-client";
 import { capturePage } from "@/lib/brightdata/scraping-browser-client";
 
 describe("scan deadline and retry policy", () => {
+  const originalEnv = {
+    BRIGHTDATA_ZONE_SERP: process.env.BRIGHTDATA_ZONE_SERP,
+    BRIGHTDATA_SERP_ENDPOINT: process.env.BRIGHTDATA_SERP_ENDPOINT,
+    BRIGHTDATA_API_KEY: process.env.BRIGHTDATA_API_KEY,
+    BRIGHT_DATA_SERP_API_KEY: process.env.BRIGHT_DATA_SERP_API_KEY,
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env.BRIGHTDATA_ZONE_SERP = originalEnv.BRIGHTDATA_ZONE_SERP;
+    process.env.BRIGHTDATA_SERP_ENDPOINT = originalEnv.BRIGHTDATA_SERP_ENDPOINT;
+    process.env.BRIGHTDATA_API_KEY = originalEnv.BRIGHTDATA_API_KEY;
+    process.env.BRIGHT_DATA_SERP_API_KEY = originalEnv.BRIGHT_DATA_SERP_API_KEY;
 
     mockGoto.mockResolvedValue(undefined);
     mockTitle.mockResolvedValue("Mock Page");
@@ -124,5 +139,19 @@ describe("scan deadline and retry policy", () => {
     ).resolves.toEqual([]);
 
     expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it("resolves Bright Data config from the supported env vars", () => {
+    process.env.BRIGHTDATA_ZONE_SERP = "serp-zone-123";
+    delete process.env.BRIGHTDATA_SERP_ENDPOINT;
+    delete process.env.BRIGHTDATA_API_KEY;
+    delete process.env.BRIGHT_DATA_SERP_API_KEY;
+
+    expect(resolveBrightDataSerpEndpoint()).toBe(
+      "https://api.brightdata.com/datasets/v3/trigger?dataset_id=serp-zone-123",
+    );
+
+    process.env.BRIGHTDATA_API_KEY = "primary-key";
+    expect(resolveBrightDataApiKey()).toBe("primary-key");
   });
 });
